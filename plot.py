@@ -83,7 +83,7 @@ def plot_training(epoch, path_to_save, src, prediction, sensor_number, index_in,
     plt.close()
 
 
-def plot_training_3(epoch, path_to_save, src, sampled_src, prediction, sensor_number, index_in, index_tar):
+def plot_training_3(epoch, path_to_save, src, sampled_src, prediction, machine_number, index_in, index_tar):
 
     # idx_scr = index_in.tolist()[0]
     # idx_tar = index_tar.tolist()[0]
@@ -93,22 +93,24 @@ def plot_training_3(epoch, path_to_save, src, sampled_src, prediction, sensor_nu
     idx_pred = [i for i in range(1, len(prediction)+1)]
     idx_sampled_src = [i for i in range(len(sampled_src))]
 
-    plt.figure(figsize=(15, 10))
+    fig, axes = plt.subplots(2, 2, figsize=(19.2, 10.8))
+    fig.suptitle("Teaching Forcing from Machine " + str(machine_number[0]) + ", Epoch " + str(epoch), fontsize=24)
     # plt.rcParams.update({"font.size": 18})
-    plt.grid(b=True, which='major', linestyle='-')
-    plt.grid(b=True, which='minor', linestyle='--', alpha=0.5)
-    plt.minorticks_on()
 
     ## REMOVE DROPOUT FOR THIS PLOT TO APPEAR AS EXPECTED !! DROPOUT INTERFERES WITH HOW THE SAMPLED SOURCES ARE PLOTTED
-    plt.plot(index_in[1:], sampled_src, 'o-.', color='red', label='sampled source', linewidth=1, markersize=10)
-    plt.plot(index_in[:-1], src, 'o-.', color='blue', label='input sequence', linewidth=1)
-    plt.plot(index_in[2:], prediction, 'o-.', color='limegreen', label='prediction sequence', linewidth=1)
-    plt.title("Teaching Forcing from Sensor " + str(sensor_number[0]) + ", Epoch " + str(epoch))
-    plt.gca().get_xaxis().set_major_formatter(mdates.DateFormatter('%d.%m.%y\n%H:%M'))
-    for label in plt.gca().get_xticklabels(which='major'):
-        label.set(rotation=45, horizontalalignment='right')
-    plt.xlabel("Time")
-    plt.ylabel("Humidity (%)")
-    plt.legend()
+
+    for i, (ax, title) in enumerate(zip(axes.flatten(), ('Comp1 Failure', 'Comp2 Failure', 'Comp4 Failure', 'No Failures'))):
+        ax.plot(index_in[1:], sampled_src[:, 0, i].numpy(), 'o-.', color='red', label='sampled source', linewidth=1, markersize=10)
+        ax.plot(index_in[:-1], src[:, 0, i].numpy(), 'o-.', color='blue', label='input sequence', linewidth=1)
+        ax.plot(index_in[2:], prediction[:, 0, i].detach().numpy(), 'o-.', color='limegreen', label='prediction sequence', linewidth=1)
+        ax.grid(b=True, which='major', linestyle='-')
+        ax.grid(b=True, which='minor', linestyle='--', alpha=0.5)
+        ax.minorticks_on()
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d.%m.%y\n%Hh%M'))
+        for label in ax.get_xticklabels(which='major'):
+            label.set(rotation=30, horizontalalignment='right', fontsize=8)
+        ax.set_title(title)
+        ax.legend()
+
     plt.savefig(path_to_save+f"/Epoch_{str(epoch)}.png")
     plt.close()

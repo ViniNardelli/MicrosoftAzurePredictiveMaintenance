@@ -38,13 +38,11 @@ def main(path_data: str,
     :param device:
     """
     clean_directories(path_to_save_model, path_to_save_loss, path_to_save_predictions)
-    train_csv, test_csv = pre_process(join(path_data, failures_csv), join(path_data, telemetry_csv), path_data)
+    train_csv_path, test_csv_path = pre_process(join(path_data, failures_csv), join(path_data, telemetry_csv), path_data)
 
-    train_dataset = MachineDataset(csv_path=train_csv, training_window=training_length, forecast_window=forecast_window,
-                                   comp_failure='failure_comp1')
+    train_dataset = MachineDataset(csv_path=train_csv_path, training_window=training_length, forecast_window=forecast_window)
     train_dataloader = DataLoader(train_dataset, batch_size=1, shuffle=True)
-    test_dataset = MachineDataset(csv_path=test_csv, training_window=training_length, forecast_window=forecast_window,
-                                  comp_failure='failure_comp1')
+    test_dataset = MachineDataset(csv_path=test_csv_path, training_window=training_length, forecast_window=forecast_window)
     test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=True)
 
     best_model = transformer(train_dataloader, train_dataset, epoch, k,

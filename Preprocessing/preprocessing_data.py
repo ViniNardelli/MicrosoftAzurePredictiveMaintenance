@@ -73,6 +73,9 @@ def merge_failures_telemetry_datasets(failures: pd.DataFrame, telemetry: pd.Data
     df = pd.merge(telemetry, failures, on=['machineID', 'day'], how='left', suffixes=('', '_y'))
     df.drop(columns=['day', 'datetime_y'], inplace=True)
 
+    df['failure'] = df['failure'].cat.add_categories('NoFailures')
+    df['failure'] = df['failure'].fillna('NoFailures')
+
     return pd.get_dummies(df, columns=['failure'])
 
 
@@ -88,7 +91,6 @@ def pre_process(failures_csv: str, telemetry_csv: str, output_path: str = '') ->
 
     df = merge_failures_telemetry_datasets(failures_df, telemetry_df)
     df = create_cycle_datetime(df)
-    # TODO: rever a função split
     df_train, df_test = split_train_test_csv(df)
 
     train_dataset_path = join(output_path, 'train_dataset.csv')

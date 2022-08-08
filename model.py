@@ -10,12 +10,13 @@ Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N
 
 class Transformer(nn.Module):
     # d_model : number of features
-    def __init__(self, feature_size=7, num_layers=3, dropout=0):
+    def __init__(self, feature_size=14, num_layers=3, dropout=0):
         super(Transformer, self).__init__()
 
         self.encoder_layer = nn.TransformerEncoderLayer(d_model=feature_size, nhead=7, dropout=dropout)
         self.transformer_encoder = nn.TransformerEncoder(self.encoder_layer, num_layers=num_layers)        
-        self.decoder = nn.Linear(feature_size, 1)
+        self.decoder = nn.Linear(feature_size, 4)
+        self.softmax = nn.Softmax(dim=2)
         self.init_weights()
 
     def init_weights(self):
@@ -34,4 +35,5 @@ class Transformer(nn.Module):
         mask = self._generate_square_subsequent_mask(len(src)).to(device)
         output = self.transformer_encoder(src, mask)
         output = self.decoder(output)
+        output = self.softmax(output)
         return output
