@@ -28,29 +28,26 @@ def plot_prediction(title, path_to_save, src, tgt, prediction, machine_number, i
     # idx_tgt = index_tar[0].tolist()
     # idx_pred = [i for i in range(idx_scr[0] +1, idx_tgt[-1])] #t2 - t61
 
-    plt.figure(figsize=(15, 10))
-    plt.rcParams.update({"font.size": 16})
+    fig, axes = plt.subplots(2, 2, figsize=(19.2, 10.8))
+    fig.suptitle("Forecast from Machine ID " + str(machine_number[0]), fontsize=24)
 
     # connect with last elemenet in src
     # tgt = np.append(src[-1], tgt.flatten())
     # prediction = np.append(src[-1], prediction.flatten())
 
-    # plotting
-    plt.plot(index_in[1:], src, '-', color='blue', label='Input', linewidth=2)
-    plt.plot(index_tar, tgt, '-', color='indigo', label='Target', linewidth=2)
-    plt.plot(concatenate((index_in[2:], index_tar[:-1])), prediction,'--', color='limegreen', label='Forecast', linewidth=2)
-
-    #formatting
-    plt.grid(b=True, which='major', linestyle='solid')
-    plt.minorticks_on()
-    plt.grid(b=True, which='minor', linestyle='dashed', alpha=0.5)
-    plt.gca().get_xaxis().set_major_formatter(mdates.DateFormatter('%d.%m.%y\n%H:%M'))
-    for label in plt.gca().get_xticklabels(which='major'):
-        label.set(rotation=45, horizontalalignment='right')
-    plt.xlabel("Time")
-    plt.ylabel("Humidity (%)")
-    plt.legend()
-    plt.title("Forecast from Machine ID " + str(machine_number[0]))
+    for i, (ax, ax_title) in enumerate(zip(axes.flatten(), ('Comp1 Failure', 'Comp2 Failure', 'Comp4 Failure', 'No Failures'))):
+        ax.plot(index_in[1:], src[:, 0, i], '-', color='blue', label='Input', linewidth=2)
+        ax.plot(index_tar, tgt[:, 0, i], '-', color='indigo', label='Target', linewidth=2)
+        ax.plot(concatenate((index_in[2:], index_tar[:-1])), prediction[:,  0, i],'--', color='limegreen', label='Forecast', linewidth=2)
+        ax.grid(b=True, which='major', linestyle='-')
+        ax.grid(b=True, which='minor', linestyle='--', alpha=0.5)
+        ax.minorticks_on()
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%d.%m.%y\n%Hh%M'))
+        for label in ax.get_xticklabels(which='major'):
+            label.set(rotation=30, horizontalalignment='right', fontsize=8)
+        ax.set_ylim((-0.1, 1.1))
+        ax.set_title(ax_title)
+        ax.legend()
 
     # save
     plt.savefig(path_to_save+f"Prediction_{title}.png")
@@ -85,14 +82,6 @@ def plot_training(epoch, path_to_save, src, prediction, sensor_number, index_in,
 
 def plot_training_3(epoch, path_to_save, src, sampled_src, prediction, machine_number, index_in, index_tar):
 
-    # idx_scr = index_in.tolist()[0]
-    # idx_tar = index_tar.tolist()[0]
-    # idx_pred = idx_scr.append(idx_tar.append([idx_tar[-1] + 1]))
-
-    idx_scr = [i for i in range(len(src))]
-    idx_pred = [i for i in range(1, len(prediction)+1)]
-    idx_sampled_src = [i for i in range(len(sampled_src))]
-
     fig, axes = plt.subplots(2, 2, figsize=(19.2, 10.8))
     fig.suptitle("Teaching Forcing from Machine " + str(machine_number[0]) + ", Epoch " + str(epoch), fontsize=24)
     # plt.rcParams.update({"font.size": 18})
@@ -109,6 +98,7 @@ def plot_training_3(epoch, path_to_save, src, sampled_src, prediction, machine_n
         ax.xaxis.set_major_formatter(mdates.DateFormatter('%d.%m.%y\n%Hh%M'))
         for label in ax.get_xticklabels(which='major'):
             label.set(rotation=30, horizontalalignment='right', fontsize=8)
+        ax.set_ylim((-0.1, 1.1))
         ax.set_title(title)
         ax.legend()
 
