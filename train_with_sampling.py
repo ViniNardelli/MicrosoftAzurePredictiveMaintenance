@@ -76,13 +76,13 @@ def transformer(dataloader,
                 if prob_true_val:  # Using true value as next value
                     sampled_src = torch.cat((sampled_src.detach(), src[i + 1, :, :].unsqueeze(0).detach()))
                 else:  # using prediction as new value
-                    positional_encodings_new_val = src[i + 1, :, :-4].unsqueeze(0)
+                    positional_encodings_new_val = src[i + 1, :, :-3].unsqueeze(0)
                     predicted_fail = torch.cat((positional_encodings_new_val, prediction[-1, :, :].unsqueeze(0)),
                                                dim=2)
                     sampled_src = torch.cat((sampled_src.detach(), predicted_fail.detach()))
 
             """To update model after each sequence"""
-            loss = criterion(target[:-1, :, -4:], prediction)
+            loss = criterion(target[:-1, :, -3:], prediction)
             loss.backward()
             optimizer.step()
             train_loss += loss.detach().item()
@@ -109,8 +109,8 @@ def transformer(dataloader,
             # TODO: plot
             plot_training_3(epoch,
                             path_to_save_predictions,
-                            src[:, :, -4:],
-                            sampled_src[:, :, -4:],
+                            src[:, :, -3:],
+                            sampled_src[:, :, -3:],
                             prediction,
                             machine_number,
                             *dataset.get_datetime_labels(index_in.tolist()[0], index_tar.tolist()[0]))

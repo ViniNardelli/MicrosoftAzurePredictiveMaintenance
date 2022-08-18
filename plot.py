@@ -35,7 +35,7 @@ def plot_prediction(title, path_to_save, src, tgt, prediction, machine_number, i
     # tgt = np.append(src[-1], tgt.flatten())
     # prediction = np.append(src[-1], prediction.flatten())
 
-    for i, (ax, ax_title) in enumerate(zip(axes.flatten(), ('Comp1 Failure', 'Comp2 Failure', 'Comp4 Failure', 'No Failures'))):
+    for i, (ax, ax_title) in enumerate(zip(axes.flatten(), ('Comp1 Failure', 'Comp2 Failure', 'Comp4 Failure'))):
         ax.plot(index_in[1:], src[:, 0, i], '-', color='blue', label='Input', linewidth=2)
         ax.plot(index_tar, tgt[:, 0, i], '-', color='indigo', label='Target', linewidth=2)
         ax.plot(concatenate((index_in[2:], index_tar[:-1])), prediction[:,  0, i],'--', color='limegreen', label='Forecast', linewidth=2)
@@ -88,7 +88,7 @@ def plot_training_3(epoch, path_to_save, src, sampled_src, prediction, machine_n
 
     ## REMOVE DROPOUT FOR THIS PLOT TO APPEAR AS EXPECTED !! DROPOUT INTERFERES WITH HOW THE SAMPLED SOURCES ARE PLOTTED
 
-    for i, (ax, title) in enumerate(zip(axes.flatten(), ('Comp1 Failure', 'Comp2 Failure', 'Comp4 Failure', 'No Failures'))):
+    for i, (ax, title) in enumerate(zip(axes.flatten(), ('Comp1 Failure', 'Comp2 Failure', 'Comp4 Failure'))):
         ax.plot(index_in[1:], sampled_src[:, 0, i].numpy(), 'o-.', color='red', label='sampled source', linewidth=1, markersize=10)
         ax.plot(index_in[:-1], src[:, 0, i].numpy(), 'o-.', color='blue', label='input sequence', linewidth=1)
         ax.plot(index_in[2:], prediction[:, 0, i].detach().numpy(), 'o-.', color='limegreen', label='prediction sequence', linewidth=1)

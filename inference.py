@@ -40,15 +40,15 @@ def inference(path_to_save_predictions, dataset: MachineDataset, forecast_window
                     else:
                         all_predictions = torch.cat((all_predictions, prediction[-1, :, :].unsqueeze(0))) # 47+,1,1: t2' - t48', t49', t50'
 
-                    pos_encoding_old_vals = src[i + 1:, :, :-4] # 46, 1, 6, pop positional encoding first value: t2 -- t47
-                    pos_encoding_new_val = target[i + 1, :, :-4].unsqueeze(1) # 1, 1, 6, append positional encoding of last predicted value: t48
+                    pos_encoding_old_vals = src[i + 1:, :, :-3] # 46, 1, 6, pop positional encoding first value: t2 -- t47
+                    pos_encoding_new_val = target[i + 1, :, :-3].unsqueeze(1) # 1, 1, 6, append positional encoding of last predicted value: t48
                     pos_encodings = torch.cat((pos_encoding_old_vals, pos_encoding_new_val)) # 47, 1, 6 positional encodings matched with prediction: t2 -- t48
                     
-                    next_input_model = torch.cat((src[i+1:, :, -4:], prediction[-1, :, :].unsqueeze(0))) #t2 -- t47, t48'
+                    next_input_model = torch.cat((src[i+1:, :, -3:], prediction[-1, :, :].unsqueeze(0))) #t2 -- t47, t48'
                     next_input_model = torch.cat((next_input_model, pos_encodings), dim = 2) # 47, 1, 7 input for next round
 
-                true = torch.cat((src[1:,:,-4:], target[:-1, :, -4:]))
-                loss = criterion(true, all_predictions[:, :, -4:])
+                true = torch.cat((src[1:,:,-3:], target[:-1, :, -3:]))
+                loss = criterion(true, all_predictions[:, :, -3:])
                 val_loss += loss
             
             val_loss = val_loss/10
@@ -58,9 +58,9 @@ def inference(path_to_save_predictions, dataset: MachineDataset, forecast_window
             # prediction_humidity = scaler.inverse_transform(all_predictions[:, :, 0].detach().cpu().numpy())
             plot_prediction(plot,
                             path_to_save_predictions,
-                            src[:, :, -4:],
-                            target[:, :, -4:],
-                            all_predictions[:, :, -4:],
+                            src[:, :, -3:],
+                            target[:, :, -3:],
+                            all_predictions[:, :, -3:],
                             machine_number,
                             *dataset.get_datetime_labels(index_in.tolist()[0], index_tar.tolist()[0]))
 

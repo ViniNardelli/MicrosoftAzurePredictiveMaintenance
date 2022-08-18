@@ -17,12 +17,14 @@ def main(path_data: str,
          forecast_window: int = 24,
          failures_csv: str = 'PdM_failures_model3.csv',
          telemetry_csv: str = 'PdM_telemetry_model3.csv',
+         errors_csv:str = 'Pdm_errors_model3.csv',
          path_to_save_model: str = 'save_model/',
          path_to_save_loss: str = 'save_loss/',
          path_to_save_predictions: str = 'save_predictions/',
          device: str = 'cpu') -> None:
     """
 
+    :param errors_csv:
     :param path_data:
     :param epoch:
     :param k:
@@ -38,7 +40,10 @@ def main(path_data: str,
     :param device:
     """
     clean_directories(path_to_save_model, path_to_save_loss, path_to_save_predictions)
-    train_csv_path, test_csv_path = pre_process(join(path_data, failures_csv), join(path_data, telemetry_csv), path_data)
+    train_csv_path, test_csv_path = pre_process(join(path_data, failures_csv),
+                                                join(path_data, telemetry_csv),
+                                                join(path_data, errors_csv),
+                                                path_data)
 
     train_dataset = MachineDataset(csv_path=train_csv_path, training_window=training_length, forecast_window=forecast_window)
     train_dataloader = DataLoader(train_dataset, batch_size=1, shuffle=True)
@@ -67,6 +72,7 @@ if __name__ == '__main__':
     parser.add_argument('--path_to_save_predictions', type=str, default='save_predictions/')
     parser.add_argument('--failures_csv', type=str, default='PdM_failures_model3.csv')
     parser.add_argument('--telemetry_csv', type=str, default='PdM_telemetry_model3.csv')
+    parser.add_argument('--errors_csv', type=str, default='Pdm_errors_model3.csv')
     parser.add_argument('--device', type=str, default='cpu')
     args = parser.parse_args()
 

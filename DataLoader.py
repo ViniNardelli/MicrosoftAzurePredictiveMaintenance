@@ -25,7 +25,7 @@ class MachineDataset(Dataset):
         start = np.random.randint(0, len(self.df[self.df['machineID'] == machine_id]) - self.training_window - self.forecast_window)
 
         columns = ['volt', 'rotate', 'pressure', 'vibration', 'sin_hour', 'cos_hour', 'sin_day', 'cos_day', 'sin_month',
-                   'cos_month', 'failure_comp1', 'failure_comp2', 'failure_comp4', 'failure_NoFailures']
+                   'cos_month', 'error1', 'error2', 'error3', 'error4', 'error5', 'comp1', 'comp2', 'comp4']
 
         index_input = tensor([*range(start, start + self.training_window)])
         index_target = tensor([*range(start + self.training_window, start + self.training_window + self.forecast_window)])

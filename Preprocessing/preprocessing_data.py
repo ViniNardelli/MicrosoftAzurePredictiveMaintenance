@@ -27,7 +27,7 @@ def split_train_test_csv(source_df: pd.DataFrame,
         sum_relative_frequencies += machines_relative_frequencies[machine_id]
         del machines_relative_frequencies[machine_id]
 
-    return source_df[source_df['machineID'].isin(train_machines)],\
+    return source_df[source_df['machineID'].isin(train_machines)], \
            source_df[~source_df['machineID'].isin(train_machines)]
 
 
@@ -46,50 +46,70 @@ def create_cycle_datetime(source_df: pd.DataFrame, datetime_column: str = 'datet
     days_in_month = 30
     month_in_year = 12
 
-    source_df['sin_hour'] = np.sin(2*np.pi*hour/hours_in_day)
-    source_df['cos_hour'] = np.cos(2*np.pi*hour/hours_in_day)
-    source_df['sin_day'] = np.sin(2*np.pi*day/days_in_month)
-    source_df['cos_day'] = np.cos(2*np.pi*day/days_in_month)
-    source_df['sin_month'] = np.sin(2*np.pi*month/month_in_year)
-    source_df['cos_month'] = np.cos(2*np.pi*month/month_in_year)
+    source_df['sin_hour'] = np.sin(2 * np.pi * hour / hours_in_day)
+    source_df['cos_hour'] = np.cos(2 * np.pi * hour / hours_in_day)
+    source_df['sin_day'] = np.sin(2 * np.pi * day / days_in_month)
+    source_df['cos_day'] = np.cos(2 * np.pi * day / days_in_month)
+    source_df['sin_month'] = np.sin(2 * np.pi * month / month_in_year)
+    source_df['cos_month'] = np.cos(2 * np.pi * month / month_in_year)
 
     return source_df
 
 
-def merge_failures_telemetry_datasets(failures: pd.DataFrame, telemetry: pd.DataFrame) -> pd.DataFrame:
+def merge_failures_telemetry_error_datasets(failures: pd.DataFrame, telemetry: pd.DataFrame,
+                                            errors: pd.DataFrame) -> pd.DataFrame:
     """
     Merge failures and telemetry datasets, set the correct data type and apply hot one encoding to failures
+    :param errors: errors data
     :param failures: failures data
     :param telemetry: telemetry data
     :return: a dataframe containing both information
     """
+    telemetry['datetime'] = pd.to_datetime(telemetry['datetime'])
+
+    errors['datetime'] = pd.to_datetime(errors['datetime'])
+    errors['errorID'] = errors['errorID'].astype('category')
+    errors = pd.get_dummies(errors, columns=['errorID'], prefix='', prefix_sep='')
+
     failures['datetime'] = pd.to_datetime(failures['datetime'])
     failures['failure'] = failures['failure'].astype('category')
     failures['day'] = failures['datetime'].dt.date
+    failures = pd.get_dummies(failures, columns=['failure'], prefix='', prefix_sep='')
 
-    telemetry['datetime'] = pd.to_datetime(telemetry['datetime'])
-    telemetry['day'] = telemetry['datetime'].dt.date
+    df = pd.merge(telemetry, errors, on=['machineID', 'datetime'], how='left', suffixes=('', '_errors'))
+    df['day'] = df['datetime'].dt.date
+    df = pd.merge(df, failures, on=['machineID', 'day'], how='left', suffixes=('', '_failures'))
+    df.drop(columns=['day', 'datetime_failures'], inplace=True)
+    df.fillna(0, inplace=True)
 
-    df = pd.merge(telemetry, failures, on=['machineID', 'day'], how='left', suffixes=('', '_y'))
-    df.drop(columns=['day', 'datetime_y'], inplace=True)
+    df = df.groupby(['machineID', 'datetime']).agg({'volt': 'first',
+                                                    'rotate': 'first',
+                                                    'pressure': 'first',
+                                                    'vibration': 'first',
+                                                    'error1': 'sum',
+                                                    'error2': 'sum',
+                                                    'error3': 'sum',
+                                                    'error4': 'sum',
+                                                    'error5': 'sum',
+                                                    'comp1': 'sum',
+                                                    'comp2': 'sum',
+                                                    'comp4': 'sum'})
+    return df.reset_index()
 
-    df['failure'] = df['failure'].cat.add_categories('NoFailures')
-    df['failure'] = df['failure'].fillna('NoFailures')
 
-    return pd.get_dummies(df, columns=['failure'])
-
-
-def pre_process(failures_csv: str, telemetry_csv: str, output_path: str = '') -> Tuple[str, str]:
+def pre_process(failures_csv: str, telemetry_csv: str, errors_csv: str, output_path: str = '') -> Tuple[str, str]:
     """
     Merge the telemetry and failures data into one dataset, create the cycle time columns and split into train and test
+    :param errors_csv: path to the errors csv
     :param failures_csv: path to the failure csv
     :param telemetry_csv: path to the telemetry csv
     :param output_path: where the output data will be saved
     """
     failures_df = pd.read_csv(failures_csv, header=0, index_col=0)
     telemetry_df = pd.read_csv(telemetry_csv, header=0, index_col=0)
+    errors_df = pd.read_csv(errors_csv, header=0, index_col=0)
 
-    df = merge_failures_telemetry_datasets(failures_df, telemetry_df)
+    df = merge_failures_telemetry_error_datasets(failures_df, telemetry_df, errors_df)
     df = create_cycle_datetime(df)
     df_train, df_test = split_train_test_csv(df)
 
